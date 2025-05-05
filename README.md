@@ -1,7 +1,7 @@
 # Kubernetes Monitoring Solution
 
-![image](https://github.com/user-attachments/assets/321ca66e-df56-463a-87d7-d1dde30899eb)
 
+![image](https://github.com/user-attachments/assets/6252b557-5831-4086-b7b1-47c962ccea4c)
 
 
 Real-time Kubernetes cluster monitoring and alert system - Track your cluster health instantly.
