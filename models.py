@@ -66,9 +66,74 @@ class Alert(db.Model):
         )
     
     def resolve(self):
-        """Mark the alert as resolved"""
-        self.is_resolved = 1
-        self.resolved_at = func.now()
+        """Mark the alert as resolved and send resolution notification email"""
+        from datetime import datetime
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Only send notification if the alert is not already resolved
+        if self.is_resolved == 0:
+            try:
+                self.is_resolved = 1
+                self.resolved_at = func.now()
+                
+                # Generate an informative message
+                resource_info = f"{self.resource_namespace}/{self.resource_name}" if self.resource_namespace else self.resource_name
+                resolved_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                # Prepare notification message
+                subject = f"RESOLVED: {self.resource_type.capitalize()} alert for {resource_info}"
+                message = f"""
+                <h2>Kubernetes Alert Resolved</h2>
+                <p>The following alert has been resolved:</p>
+                <table border="1" cellpadding="5" style="border-collapse: collapse;">
+                    <tr>
+                        <th style="text-align: right; background-color: #f0f0f0;">Resource Type:</th>
+                        <td><strong>{self.resource_type}</strong></td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right; background-color: #f0f0f0;">Resource Name:</th>
+                        <td>{self.resource_name}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right; background-color: #f0f0f0;">Namespace:</th>
+                        <td>{self.resource_namespace or 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right; background-color: #f0f0f0;">Status:</th>
+                        <td>{self.status}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right; background-color: #f0f0f0;">Created At:</th>
+                        <td>{self.created_at}</td>
+                    </tr>
+                    <tr>
+                        <th style="text-align: right; background-color: #f0f0f0;">Resolved At:</th>
+                        <td>{resolved_time}</td>
+                    </tr>
+                </table>
+                <p>No further action is required for this alert.</p>
+                """
+                
+                # Try to import and use the email function
+                try:
+                    from sendgrid_util import send_email
+                    
+                    # Get recipient email from environment variable
+                    to_email = os.environ.get('SENDGRID_TO_EMAIL')
+                    if to_email:
+                        send_email(
+                            to_email=to_email,
+                            subject=subject,
+                            html_content=message
+                        )
+                        logger.info(f"Resolution notification sent for alert: {self.alert_key}")
+                    else:
+                        logger.warning("SENDGRID_TO_EMAIL not set, skipping resolution notification")
+                except Exception as e:
+                    logger.error(f"Error sending resolution notification: {e}")
+            except Exception as e:
+                logger.error(f"Error resolving alert: {e}")
 
 # Initialize the database
 with app.app_context():

@@ -123,7 +123,7 @@ function refreshData() {
         });
         
     // Fetch the latest alerts data
-    fetch('/api/alerts')
+    fetch('/api/alerts?status=active')
         .then(response => {
             if (!response.ok) {
                 throw new Error('Network response was not ok');
@@ -136,6 +136,10 @@ function refreshData() {
             if (data.alerts && Array.isArray(data.alerts) && data.alerts.length > 0 && data.alerts[0].id) {
                 currentData.alerts = data.alerts;
                 updateAlertsTable(currentData.alerts);
+            } else if (data.alerts && Array.isArray(data.alerts) && data.alerts.length === 0) {
+                currentData.alerts = [];
+                updateAlertsTable([]);
+                console.log('No active alerts found');
             } else {
                 console.warn('Received alert data is not in the expected format, ignoring:', data);
             }
@@ -420,7 +424,7 @@ function updateAlertsTable(alerts) {
     alertsTable.innerHTML = '';
     
     if (!alerts || alerts.length === 0) {
-        alertsTable.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No alerts found</td></tr>';
+        alertsTable.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No alerts found</td></tr>';
         return;
     }
     
@@ -431,6 +435,44 @@ function updateAlertsTable(alerts) {
     // Get the search value
     const searchInput = document.getElementById('alert-search');
     const searchQuery = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    
+    // Check if we're in the resource view or main dashboard
+    // In resource view, we have the alert-status-filter and we'll show all alerts (including resolved ones)
+    // In main dashboard, we only show active alerts
+    const isResourceView = !!statusFilter;
+    
+    // If we need to fetch all alerts for the resource view tab
+    if (isResourceView && (statusValue === 'all' || statusValue === 'resolved')) {
+        // Fetch all alerts (including resolved) for the resource view
+        fetch('/api/alerts?status=all')
+            .then(response => response.json())
+            .then(data => {
+                if (data.alerts && Array.isArray(data.alerts)) {
+                    populateAlertsTable(data.alerts, statusValue, searchQuery);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching all alerts:', error);
+                // Fall back to current alerts
+                populateFilteredAlertsTable(alerts, statusValue, searchQuery);
+            });
+    } else {
+        // Just filter the current alerts (which are already active-only for the dashboard)
+        populateFilteredAlertsTable(alerts, statusValue, searchQuery);
+    }
+}
+
+function populateAlertsTable(alerts, statusValue, searchQuery) {
+    // We've received alerts directly from the API, just apply filtering
+    populateFilteredAlertsTable(alerts, statusValue, searchQuery);
+}
+
+function populateFilteredAlertsTable(alerts, statusValue, searchQuery) {
+    const alertsTable = document.getElementById('alerts-table');
+    if (!alertsTable) return;
+    
+    // Clear the table before populating
+    alertsTable.innerHTML = '';
     
     // Filter alerts based on status and search query
     let filteredAlerts = [...alerts];

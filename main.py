@@ -39,28 +39,28 @@ def api_resources():
 def api_alerts():
     """API endpoint to get alerts from the database"""
     try:
-        # Get status filter parameter - Varsayılan olarak 'all'
-        status_filter = request.args.get('status', 'all')
+        # Get status filter parameter - Default is 'active'
+        status_filter = request.args.get('status', 'active')
         
-        # Query oluştur
+        # Create query
         query = Alert.query
         
-        # Status filtresi uygula
+        # Apply status filter
         if status_filter == 'active':
             query = query.filter(Alert.is_resolved == 0)
         elif status_filter == 'resolved':
             query = query.filter(Alert.is_resolved == 1)
         
-        # Son eklenenler önce olacak şekilde sırala
+        # Sort with most recent first
         query = query.order_by(Alert.created_at.desc())
         
-        # Sorgula ve sonuçları al
+        # Execute query and get results
         alerts = query.all()
         
         # Format alerts for JSON response
         alerts_data = []
         for alert in alerts:
-            # 'status' değeri 'None' veya benzeri bir değerse, 'Unknown' yerine koy
+            # If 'status' value is 'None' or similar, replace with 'Unknown'
             status_value = alert.status if alert.status else 'Unknown'
             
             alerts_data.append({
