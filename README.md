@@ -2,7 +2,8 @@
 
 Real-time Kubernetes cluster monitoring and alert system - Track your cluster health instantly.
 
-![Kubernetes Monitoring Dashboard](./docs/images/dashboard.png)
+![image](https://github.com/user-attachments/assets/776f6b2a-1740-4858-a1bf-62d83e811dd8)
+
 
 ## About the Project
 
@@ -17,7 +18,8 @@ This project is a comprehensive monitoring solution that tracks Kubernetes clust
 - **Intuitive Dashboard**: Easy-to-use visual graphs and filterable tables
 - **Alert Management**: Capabilities to resolve, delete, and filter alerts
 
-![Kubernetes Alert Email](./docs/images/alert-email.png)
+<img width="593" alt="image" src="https://github.com/user-attachments/assets/9cda3a53-5dca-4d00-ada8-e2c76e6d12f0" />
+
 
 ## How It Works
 
@@ -65,9 +67,7 @@ data:
   EMAIL_TO: your-base64-encoded-recipients
 ```
 
-## Developer
-
-This project was developed by **Hasan Alperen SELÇUK**.
+## Contact
 
 Contact: [alperenhasanselcuk@gmail.com](mailto:alperenhasanselcuk@gmail.com)
 
