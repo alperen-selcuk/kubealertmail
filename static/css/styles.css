@@ -1,0 +1,76 @@
+/* Additional custom styles beyond Bootstrap */
+
+/* Make icon scale animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#refresh-indicator i {
+    animation: spin 1s linear infinite;
+    animation-play-state: paused;
+}
+
+#refresh-indicator.refreshing i {
+    animation-play-state: running;
+}
+
+/* Status indicators */
+.status-badge {
+    width: 10px;
+    height: 10px;
+    display: inline-block;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-ready {
+    background-color: var(--bs-success);
+}
+
+.status-notready {
+    background-color: var(--bs-danger);
+}
+
+.status-pending {
+    background-color: var(--bs-warning);
+}
+
+.status-running {
+    background-color: var(--bs-success);
+}
+
+.status-failed {
+    background-color: var(--bs-danger);
+}
+
+.status-unknown {
+    background-color: var(--bs-secondary);
+}
+
+/* Make cards have consistent height */
+.card {
+    height: 100%;
+}
+
+/* Make sure tables don't overflow */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Additional padding for the dashboard */
+.container-fluid {
+    padding: 1.5rem;
+}
+
+/* Container status details */
+.container-status {
+    display: inline-block;
+    margin-right: 0.5rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.container-status .badge {
+    margin-left: 0.25rem;
+}

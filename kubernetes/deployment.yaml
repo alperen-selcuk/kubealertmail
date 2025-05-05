@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-monitor
+  namespace: monitoring
+  labels:
+    app: k8s-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-monitor
+  template:
+    metadata:
+      labels:
+        app: k8s-monitor
+    spec:
+      serviceAccountName: k8s-monitor-sa
+      containers:
+      - name: k8s-monitor
+        image: k8s-monitor:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: POLL_INTERVAL
+          value: "60"
+        - name: ALERT_COOL_DOWN
+          value: "300"
+        - name: SMTP_SERVER
+          valueFrom:
+            secretKeyRef:
+              name: smtp-credentials
+              key: smtp_server
+        - name: SMTP_PORT
+          valueFrom:
+            secretKeyRef:
+              name: smtp-credentials
+              key: smtp_port
+        - name: SMTP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: smtp-credentials
+              key: smtp_username
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: smtp-credentials
+              key: smtp_password
+        - name: EMAIL_FROM
+          valueFrom:
+            secretKeyRef:
+              name: smtp-credentials
+              key: email_from
+        - name: EMAIL_TO
+          valueFrom:
+            secretKeyRef:
+              name: smtp-credentials
+              key: email_to
+        # PostgreSQL Environment Variables
+        - name: PGUSER
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: PGUSER
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: PGPASSWORD
+        - name: PGHOST
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: PGHOST
+        - name: PGPORT
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: PGPORT
+        - name: PGDATABASE
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: PGDATABASE
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: DATABASE_URL
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-monitor
+  namespace: monitoring
+spec:
+  selector:
+    app: k8s-monitor
+  ports:
+  - port: 80
+    targetPort: 5000
+  type: ClusterIP

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kubernetes Monitor</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="/static/css/styles.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i data-feather="server"></i>
+                Kubernetes Monitor
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">Resources</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="d-flex">
+                <div id="refresh-indicator" class="text-success me-2">
+                    <i data-feather="refresh-cw"></i>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="autoRefreshSwitch" checked>
+                    <label class="form-check-label" for="autoRefreshSwitch">Auto-refresh</label>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between">
+                            <span>Nodes</span>
+                            <i data-feather="server"></i>
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <div class="display-4 me-3" id="nodes-count">-</div>
+                            <div>
+                                <div class="text-success"><span id="nodes-ready">-</span> Ready</div>
+                                <div class="text-danger"><span id="nodes-notready">-</span> NotReady</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between">
+                            <span>Pods</span>
+                            <i data-feather="box"></i>
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <div class="display-4 me-3" id="pods-count">-</div>
+                            <div>
+                                <div class="text-success"><span id="pods-running">-</span> Running</div>
+                                <div class="text-warning"><span id="pods-pending">-</span> Pending</div>
+                                <div class="text-danger"><span id="pods-failed">-</span> Failed</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between">
+                            <span>Alerts</span>
+                            <i data-feather="alert-triangle"></i>
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <div class="display-4 me-3" id="alerts-count">-</div>
+                            <div>
+                                <div class="text-warning"><span id="alerts-today">-</span> Today</div>
+                                <div class="text-info"><span id="alerts-total">-</span> Total</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title d-flex justify-content-between">
+                            <span>Status</span>
+                            <i data-feather="activity"></i>
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <div class="display-4 me-3 text-success" id="status-icon">
+                                <i data-feather="check-circle"></i>
+                            </div>
+                            <div id="status-message">Monitoring active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Node Status</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="btn-refresh-nodes">
+                            <i data-feather="refresh-cw"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="node-chart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Pod Status</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="btn-refresh-pods">
+                            <i data-feather="refresh-cw"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="pod-chart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Alerts</h5>
+                        <span class="badge bg-warning" id="alert-count-badge">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Resource</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alerts-table">
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No alerts yet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
